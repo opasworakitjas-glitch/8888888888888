@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สื่อการเรียนรู้ / Interactive Learning: Probability 3D White & Red Edition Battle</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Sarabun', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333; margin: 0; padding: 20px; line-height: 1.6;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), 
+                              url('image_0b3720.png');
+            background-size: cover; background-position: center; background-attachment: fixed;
+        }
+        .container {
+            max-width: 980px; margin: 0 auto; background: rgba(255, 255, 255, 0.95);
+            padding: 30px; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); position: relative;
+        }
+        .lang-switch { position: absolute; top: 20px; right: 20px; }
+        .lang-btn {
+            background-color: #ecf0f1; border: 2px solid #bdc3c7; padding: 5px 15px;
+            cursor: pointer; border-radius: 20px; font-weight: bold; color: #2c3e50; transition: all 0.3s;
+        }
+        .lang-btn.active { background-color: #34495e; color: white; border-color: #2c3e50; }
+        h1, h2, h3 { color: #2c3e50; }
+        h1 { text-align: center; margin-top: 10px; }
+        .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 20px; }
+
+        .prediction-box {
+            background: #ffeaa7; border: 2px dashed #fdcb6e; padding: 15px;
+            border-radius: 8px; margin-bottom: 20px; text-align: center;
+        }
+        .prediction-select {
+            padding: 8px 15px; font-size: 16px; border-radius: 5px; font-weight: bold; margin-left: 10px;
+        }
+
+        .theory-box, .conclusion-box { background: #eef7fa; border-left: 5px solid #3498db; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; }
+        .formula { font-size: 1.2em; font-weight: bold; text-align: center; background: #fff; padding: 10px; border-radius: 8px; color: #2980b9; margin: 10px 0; border: 1px dashed #3498db; }
+        
+        .definition-list { margin-top: 15px; padding-left: 20px; }
+        .definition-list li { margin-bottom: 8px; }
+
+        .controls { background: #fdfefe; border: 1px solid #d5dbdb; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .control-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        select, input[type="range"], input[type="text"], input[type="number"] { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #bdc3c7; font-family: inherit; box-sizing: border-box; }
+        .value-display { font-weight: bold; color: #e74c3c; }
+
+        .mode-toggle { display: flex; gap: 10px; margin-bottom: 15px; background: #eaeded; padding: 5px; border-radius: 8px; }
+        .mode-btn { flex: 1; padding: 10px; border: none; background: transparent; font-weight: bold; cursor: pointer; border-radius: 6px; color: #7f8c8d; transition: all 0.3s; }
+        .mode-btn.active { background: #3498db; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+        #canvas3d-container {
+            width: 100%; height: 350px; 
+            background-image: url('S__5398534.jpg');
+            background-size: cover; background-position: center;
+            border-radius: 12px; margin-bottom: 20px; overflow: hidden; position: relative; border: 3px solid #34495e;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.6);
+        }
+        .action-btns { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 15px; z-index: 10; }
+        .btn-action { background: #e74c3c; color: white; border: none; padding: 12px 28px; font-size: 16px; font-weight: bold; border-radius: 30px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.4); transition: transform 0.1s, background 0.3s; }
+        .btn-action:hover { background: #c0392b; }
+        .btn-action:disabled { background: #95a5a6; cursor: not-allowed; }
+        .btn-reset { background: #e67e22; }
+        .btn-reset:hover { background: #d35400; }
+
+        .sample-space-box { background: #f9ebea; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-family: monospace; font-size: 1.1em; color: #c0392b; }
+        .chart-container { position: relative; height: 350px; width: 100%; margin-bottom: 20px; }
+        .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .btn-export { background: #27ae60; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; transition: background 0.3s; }
+        .btn-export:hover { background: #2ecc71; }
+
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background: #fff; }
+        th, td { border: 1px solid #bdc3c7; padding: 10px; text-align: center; }
+        th { background: #34495e; color: white; }
+        tr:nth-child(even) { background: #f2f6f8; }
+
+        .quiz-section { background: #fff9e6; padding: 20px; border-radius: 8px; border-left: 5px solid #f1c40f; margin-bottom: 20px; }
+        .question-card { background: white; border: 1px solid #f1c40f; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        .options-group { margin: 10px 0; display: flex; flex-direction: column; gap: 8px; }
+        .option-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #fdfefe; border: 1px solid #bdc3c7; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
+        .option-item:hover { background: #ebf5fb; }
+        .option-item input { margin: 0; cursor: pointer; }
+        .feedback { display: none; margin-top: 10px; padding: 10px; border-radius: 6px; font-weight: bold; }
+        .feedback.correct { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .feedback.incorrect { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        .score-board { background: #2c3e50; color: white; padding: 15px; border-radius: 8px; text-align: center; font-size: 1.2em; font-weight: bold; margin-bottom: 15px; display: none; }
+        .badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; color: white; margin-right: 10px; }
+        .badge-easy { background-color: #2ecc71; }
+        .badge-medium { background-color: #f39c12; }
+        .badge-hard { background-color: #e67e22; }
+        .badge-expert { background-color: #e74c3c; }
+
+        .btn-submit-quiz { background: #f1c40f; color: #2c3e50; border: none; padding: 10px 20px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 10px; }
+        .btn-submit-quiz:hover { background: #f39c12; color: white; }
+
+        .add-quiz-section { background: #f4f6f7; padding: 20px; border-radius: 8px; border: 1px solid #bdc3c7; margin-bottom: 20px; }
+        .btn-add { background-color: #27ae60; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; }
+        .btn-add:hover { background-color: #2ecc71; }
+        .btn-reset-questions { background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; float: right; }
+
+        .summary-box { background: #eaf2f8; border-left: 5px solid #2980b9; padding: 20px; border-radius: 8px; margin-bottom: 25px; }
+        .summary-box h2 { margin-top: 0; color: #2c3e50; }
+        .summary-list { margin: 0; padding-left: 20px; }
+        .summary-list li { margin-bottom: 10px; }
+
+        /* ========================================== */
+        /* 🎈 KAHOOT ANIMATION & REALTIME STYLES */
+        /* ========================================== */
+        .qrcode-section {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: #ffffff; padding: 25px; border-radius: 12px; text-align: center; margin-top: 25px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3); border: 2px solid #f1c40f;
+        }
+        .qrcode-section h2, .qrcode-section h3, .qrcode-section p {
+            color: #ffffff !important;
+        }
+        .qrcode-container {
+            background: white; padding: 15px; display: inline-block; border-radius: 10px; margin: 15px 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .rules-badge-list {
+            display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 15px;
+        }
+        .rule-badge {
+            background: rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 20px;
+            border: 1px solid #f1c40f; font-weight: bold; color: #ffffff; font-size: 0.95em;
+        }
+        
+        .qr-player-table {
+            width: 100%; border-collapse: separate; border-spacing: 0 10px; margin-top: 15px;
+            color: #ffffff;
+        }
+        .qr-player-table th {
+            background: #1a252f; color: #f1c40f; padding: 14px; border: none; font-size: 1.15em;
+        }
+        .qr-player-table tr.player-row {
+            background: rgba(255, 255, 255, 0.15);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+        }
+        .qr-player-table td {
+            padding: 16px; border: none; color: #ffffff; font-weight: bold; font-size: 1.2em; text-align: center;
+        }
+        .qr-player-table tr.player-row td:first-child { border-radius: 12px 0 0 12px; }
+        .qr-player-table tr.player-row td:last-child { border-radius: 0 12px 12px 0; }
+
+        /* แอนิเมชันชื่อเด้งขึ้นมาสไตล์ KAHOOT POP! */
+        @keyframes kahootPop {
+            0% {
+                opacity: 0;
+                transform: scale(0.2) translateY(50px);
+            }
+            60% {
+                transform: scale(1.15) translateY(-8px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .kahoot-enter {
+            animation: kahootPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            background: linear-gradient(90deg, #f39c12, #e67e22) !important;
+            box-shadow: 0 0 25px #f1c40f !important;
+        }
+
+        /* อันดับ TOP 3 ตกแต่งพิเศษ */
+        .rank-1 { background: linear-gradient(90deg, rgba(241, 196, 15, 0.4), rgba(243, 156, 18, 0.2)) !important; border-left: 6px solid #f1c40f; }
+        .rank-2 { background: linear-gradient(90deg, rgba(189, 195, 199, 0.4), rgba(149, 165, 166, 0.2)) !important; border-left: 6px solid #bdc3c7; }
+        .rank-3 { background: linear-gradient(90deg, rgba(211, 84, 0, 0.4), rgba(230, 126, 34, 0.2)) !important; border-left: 6px solid #e67e22; }
+
+        .status-active { color: #2ecc71; font-weight: bold; }
+        .status-defeated { color: #e74c3c; font-weight: bold; }
+
+        .mobile-game-panel {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.95); z-index: 9999; overflow-y: auto; padding: 20px; box-sizing: border-box;
+            color: white; font-family: sans-serif;
+        }
+        .mobile-card {
+            max-width: 420px; margin: 20px auto; background: #1e272e; padding: 25px; border-radius: 16px;
+            border: 2px solid #f1c40f; text-align: center; color: #ffffff;
+        }
+        .btn-play-game {
+            background: #2ecc71; color: white; border: none; padding: 14px 28px; font-size: 1.2em;
+            font-weight: bold; border-radius: 30px; cursor: pointer; width: 100%; margin-top: 15px;
+            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);
+        }
+        .btn-play-game:hover { background: #27ae60; }
+        .btn-play-game:disabled { background: #7f8c8d; cursor: not-allowed; box-shadow: none; }
+        .timer-box {
+            font-size: 1.3em; font-weight: bold; color: #e74c3c; background: rgba(231, 76, 60, 0.15);
+            padding: 8px; border-radius: 8px; border: 1px solid #e74c3c; margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="mainContainer">
+    <div class="lang-switch">
+        <button id="btnTH" class="lang-btn active" onclick="setLanguage('th')">TH</button>
+        <button id="btnEN" class="lang-btn" onclick="setLanguage('en')">EN</button>
+    </div>
+
+    <h1 id="mainTitle">🎲 Probability 3D White & Red Edition</h1>
+    <p id="mainSubtitle" class="subtitle">เรียนรู้ความน่าจะเป็นผ่านการทอยลูกเต๋าสีขาวจุดสีแดงคลาสสิก</p>
+
+    <div class="prediction-box">
+        <label style="display:inline; font-size:1.1em; color:#d35400;">🎯 **คาดเดาผลลัพธ์ในตานี้:** เลือกทายผลก่อนกดทอย</label>
+        <select id="predictSelect" class="prediction-select"></select>
+    </div>
+
+    <div class="theory-box">
+        <h2 id="theoryTitle" style="margin-top:0;">ทฤษฎีความน่าจะเป็น (Probability Theory)</h2>
+        <div class="formula">P(E) = n(E) / n(S)</div>
+        <ul class="definition-list" id="definitionList">
+            <li><strong>การทดลองสุ่ม (Random Experiment):</strong> การทดลองที่ไม่สามารถระบุผลลัพธ์ล่วงหน้าได้อย่างแน่นอน</li>
+            <li><strong>แซมเปิลสเปซ (Sample Space - S):</strong> เซตของผลลัพธ์ทั้งหมดที่เป็นไปได้</li>
+            <li><strong>เหตุการณ์ (Event - E):</strong> ผลลัพธ์ที่เราสนใจจากการทดลองสุ่ม</li>
+        </ul>
+    </div>
+
+    <div class="controls">
+        <label id="labelSimMode">โหมดการจำลอง:</label>
+        <div class="mode-toggle">
+            <button id="modeStepBtn" class="mode-btn active" onclick="setSimMode('step')">โหมดแข่งทอยสลับตา (3D Red Dots Effects)</button>
+            <button id="modeFastBtn" class="mode-btn" onclick="setSimMode('fast')">โหมดจำลองความเร็วสูง (Auto Fast)</button>
+        </div>
+
+        <div class="control-group">
+            <label id="labelExperiment">เลือกรูปแบบการทดลอง:</label>
+            <select id="experimentSelect" onchange="setupExperiment()">
+                <option value="coin">โยนเหรียญ 3D</option>
+                <option value="die">ทอดลูกเต๋าสีขาวจุดสีแดง 3D</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label><span id="labelCoin">จำนวนลูกเต๋า/เหรียญ:</span> <span id="itemValue" class="value-display">3</span></label>
+            <input type="range" id="itemSlider" min="1" max="10" value="3" step="1" oninput="setupExperiment()">
+        </div>
+        <div class="control-group" id="trialControlGroup" style="display:none;">
+            <label><span id="labelTrial">จำนวนรอบการทดลองความเร็วสูง:</span> <span id="trialValue" class="value-display">100</span></label>
+            <input type="range" id="trialSlider" min="10" max="5000" value="100" step="10" oninput="runFastSimulation()">
+        </div>
+    </div>
+
+    <div id="canvas3d-container">
+        <div class="action-btns">
+            <button id="tossBtn" class="btn-action" onclick="animateToss()">🎲 ทอยเต๋าสีขาวจุดแดง! (Toss!)</button>
+            <button id="resetBtn" class="btn-action btn-reset" onclick="resetStats()">รีเซ็ตผลการทดลอง</button>
+        </div>
+    </div>
+
+    <div class="sample-space-box">
+        <strong id="labelSampleSpaceTitle">ปริภูมิตัวอย่าง (Sample Space):</strong><br>
+        S = { <span id="sampleSpaceSet">H, T</span> } | n(S) = <span id="sampleSpaceN">2</span> | รวมทอยสะสม: <span id="totalTossesDisplay">0</span> ครั้ง
+    </div>
+
+    <div class="chart-container">
+        <canvas id="probabilityChart"></canvas>
+    </div>
+
+    <div class="table-header">
+        <h3 id="tableTitle" style="margin:0;">ตารางเปรียบเทียบผลลัพธ์</h3>
+        <button class="btn-export" onclick="exportCSV()">ส่งออกข้อมูล (Export CSV)</button>
+    </div>
+    <div style="overflow-x:auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th id="thOutcome">ผลลัพธ์ที่สนใจ (E)</th>
+                    <th id="thFreq">ความถี่จากการทดลอง</th>
+                    <th id="thExpProb">ความน่าจะเป็นจากการทดลอง (%)</th>
+                    <th id="thTheoProb">ความน่าจะเป็นทางทฤษฎี (%)</th>
+                </tr>
+            </thead>
+            <tbody id="dataTableBody"></tbody>
+        </table>
+    </div>
+
+    <div class="quiz-section">
+        <button class="btn-reset-questions" onclick="resetDefaultQuestions()">คืนค่าโจทย์เริ่มต้น</button>
+        <h2 id="quizTitle" style="margin-top:0;">🏆 แบบทดสอบวัดความเข้าใจ</h2>
+        <div id="scoreBoard" class="score-board"></div>
+        <div id="quizContainer"></div>
+        <button class="btn-submit-quiz" onclick="checkQuizAnswers()">ส่งคำตอบ</button>
+    </div>
+
+    <div class="add-quiz-section">
+        <h3 id="addQuizTitle">เพิ่มโจทย์ข้อใหม่ (บันทึกลง LocalStorage)</h3>
+        <div style="margin-bottom:10px;">
+            <label id="lblAddQuestion">โจทย์คำถาม:</label>
+            <input type="text" id="newQuestion" placeholder="พิมพ์คำถามที่นี่...">
+        </div>
+        <div style="margin-bottom:10px;">
+            <label>ตัวเลือกคำตอบ (คั่นด้วยเครื่องหมายจุลภาค เช่น 1/2, 1/4, 1/6, 1/8):</label>
+            <input type="text" id="newOptions" placeholder="ตัวเลือก A, ตัวเลือก B, ตัวเลือก C, ตัวเลือก D">
+        </div>
+        <div style="margin-bottom:10px;">
+            <label>ลำดับตัวเลือกที่ถูกต้อง (0 คือตัวเลือกแรก, 1 คือตัวเลือกที่สอง):</label>
+            <input type="number" id="correctIdx" min="0" max="3" value="0">
+        </div>
+        <div style="margin-bottom:10px;">
+            <label id="lblAddAnswer">เฉลยพร้อมเหตุผล:</label>
+            <input type="text" id="newAnswer" placeholder="พิมพ์เหตุผลเฉลยที่นี่...">
+        </div>
+        <div style="margin-bottom:10px;">
+            <label id="lblAddDifficulty">ระดับความยาก:</label>
+            <select id="newDifficulty">
+                <option value="easy">ระดับง่าย</option>
+                <option value="medium">ระดับปานกลาง</option>
+                <option value="hard">ระดับยาก</option>
+                <option value="expert">ระดับท้าทาย</option>
+            </select>
+        </div>
+        <button class="btn-add" id="btnAddQuiz" onclick="addNewQuiz()">+ บันทึกโจทย์ใหม่</button>
+    </div>
+
+    <div class="summary-box">
+        <h2>สรุปเนื้อหาสาระสำคัญ (Key Summary & Takeaways)</h2>
+        <ul class="summary-list">
+            <li><strong>ความน่าจะเป็น P(E) = n(E) / n(S):</strong> อัตราส่วนระหว่างจำนวนผลลัพธ์ที่สนใจ ต่อจำนวนผลลัพธ์ที่เป็นไปได้ทั้งหมด</li>
+            <li><strong>กฎของจำนวนมาก (Law of Large Numbers):</strong> ยิ่งทอยจำนวนครั้งมากขึ้น ผลลัพธ์จริงจะยิ่งลู่เข้าใกล้ค่าทฤษฎี</li>
+        </ul>
+    </div>
+
+    <div class="qrcode-section">
+        <h2>📱 สแกน QR Code เข้าร่วมกิจกรรม Probability Battle Game!</h2>
+        <p style="font-size: 1.1em; opacity: 0.9;">สแกนด้วยมือถือเพื่อเข้าร่วมมินิเกมเดิมพันความน่าจะเป็น แข่งขันขึ้นจอมอนิเตอร์หลัก!</p>
+        
+        <div class="qrcode-container" id="qrcode"></div>
+
+        <div class="rules-badge-list">
+            <div class="rule-badge">🎁 แต้มเริ่มต้น: 10 แต้ม</div>
+            <div class="rule-badge">🪙 เดิมพันขั้นต่ำ: 1 แต้ม</div>
+            <div class="rule-badge">🔥 ทายถูกรับ: คูณ 3 เท่า (3x)</div>
+            <div class="rule-badge">💀 แต้มเหลือ 0: แพ้ทันที</div>
+            <div class="rule-badge">⏱️ เวลาต่อรอบ: ไม่เกิน 30 วินาที</div>
+            <div class="rule-badge">🎲 ลูกเต๋า: เลือกจำนวนได้เอง</div>
+            <div class="rule-badge">⏳ สิทธิ์การเล่น: สูงสุด 10 ครั้ง</div>
+        </div>
+
+        <h3 style="margin-top:25px;">🏆 ตารางรายชื่อผู้เล่นและคะแนนเรียลไทม์ (Kahoot Live!)</h3>
+        <div style="overflow-x:auto;">
+            <table class="qr-player-table">
+                <thead>
+                    <tr>
+                        <th>อันดับ</th>
+                        <th>ชื่อผู้เล่น</th>
+                        <th>คะแนนที่มีอยู่</th>
+                        <th>จำนวนรอบที่เล่น</th>
+                        <th>สถานะ</th>
+                    </tr>
+                </thead>
+                <tbody id="qrScoreboardBody">
+                    <tr><td colspan="5" style="opacity:0.7; padding:20px;">ยังไม่มีผู้เล่นสแกนเข้าร่วมในขณะนี้</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <button onclick="clearAllPlayers()" style="margin-top:15px; background:#e74c3c; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">🔄 รีเซ็ตตารางผู้เล่นทั้งหมด</button>
+    </div>
+</div>
+
+<div class="mobile-game-panel" id="mobileGamePanel">
+    <div class="mobile-card" id="mobileRegCard">
+        <h2 style="color:#f1c40f;">🎮 เข้าร่วมกิจกรรมเดิมพัน</h2>
+        <p>กติกา: แต้มเริ่มต้น 10 แต้ม | แต้มหมด = แพ้ทันที | เวลาเดิมพันรอบละ 30 วิ</p>
+        <div style="text-align:left; margin-bottom:15px;">
+            <label>กรอกชื่อของคุณ:</label>
+            <input type="text" id="mobilePlayerName" placeholder="เช่น น้อง A, Gamer01" style="font-size:1.1em; padding:10px;">
+        </div>
+        <button class="btn-play-game" onclick="startMobilePlayer()">🚀 เริ่มต้นเล่นเกม</button>
+    </div>
+
+    <div class="mobile-card" id="mobilePlayCard" style="display:none;">
+        <h3 id="mobileWelcome">ยินดีต้อนรับ</h3>
+        
+        <div class="timer-box" id="timerBox">
+            ⏱️ เวลาที่เหลือในรอบนี้: <span id="timerSec">30</span> วินาที
+        </div>
+
+        <div style="background:#2c3e50; padding:15px; border-radius:10px; margin:15px 0;">
+            <div style="font-size:1.1em;">💰 แต้มคงเหลือ: <span id="mobilePoints" style="color:#2ecc71; font-weight:bold; font-size:1.4em;">10</span> แต้ม</div>
+            <div style="font-size:0.9em; color:#f1c40f; margin-top:5px;">🎲 รอบที่เล่นไป: <span id="mobileRounds">0</span> / 10</div>
+        </div>
+
+        <div style="text-align:left; margin-bottom:12px;">
+            <label>1. เลือกจำนวนลูกเต๋าที่ใช้ทอย:</label>
+            <select id="mobileDiceCount" style="font-size:1.1em; padding:8px;" onchange="updateMobileGuessOptions()">
+                <option value="1">ลูกเต๋า 1 ลูก (แต้ม 1-6)</option>
+                <option value="2">ลูกเต๋า 2 ลูก (ผลรวม 2-12)</option>
+                <option value="3">ลูกเต๋า 3 ลูก (ผลรวม 3-18)</option>
+                <option value="4">ลูกเต๋า 4 ลูก (ผลรวม 4-24)</option>
+                <option value="5">ลูกเต๋า 5 ลูก (ผลรวม 5-30)</option>
+            </select>
+        </div>
+
+        <div style="text-align:left; margin-bottom:12px;">
+            <label>2. เลือกจำนวนแต้มที่จะเดิมพัน (ขั้นต่ำ 1):</label>
+            <input type="number" id="mobileBetAmount" min="1" value="1" style="font-size:1.1em; padding:8px;">
+        </div>
+
+        <div style="text-align:left; margin-bottom:15px;">
+            <label>3. เลือกทายผลลัพธ์/ผลรวมแต้ม:</label>
+            <select id="mobileGuess" style="font-size:1.1em; padding:8px;"></select>
+        </div>
+
+        <button class="btn-play-game" id="btnRollDiceMobile" onclick="playMobileRound()">🎲 เสี่ยงโชคทอยเต๋า!</button>
+        <div id="mobileResultLog" style="margin-top:15px; font-weight:bold; font-size:1.1em;"></div>
+    </div>
+</div>
+
+<script>
+    // ==========================================
+    // ⚡ REALTIME SYNC SYSTEM (NO SETUP NEEDED)
+    // ==========================================
+    const broadcastChannel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('kahoot_dice_channel') : null;
+
+    const defaultQuizData = [
+        { diff: 'easy', qTH: 'จากการทอดลูกเต๋า 1 ลูก 1 ครั้ง ความน่าจะเป็นที่จะได้ "แต้มคู่" คือเท่าใด?', options: ['1/6', '1/3', '1/2', '2/3'], correct: 2, aTH: 'แต้มคู่มี 3 กรณี (2, 4, 6) ดังนั้น P(E) = 3/6 = 1/2' },
+        { diff: 'medium', qTH: 'หากโยนเหรียญ 2 เหรียญพร้อมกัน 1 ครั้ง ความน่าจะเป็นที่จะ "ออกหน้าเหมือนกัน" คือเท่าใด?', options: ['1/4', '1/2', '3/4', '1'], correct: 1, aTH: 'ออกหน้าเหมือนกันคือ HH และ TT (2 แบบ) จาก 4 แบบ = 1/2' },
+        { diff: 'hard', qTH: 'ในการทอดลูกเต๋า 2 ลูกพร้อมกัน ความน่าจะเป็นที่ "ผลรวมของแต้มมากกว่า 10" คือเท่าใด?', options: ['1/36', '1/18', '1/12', '1/6'], correct: 2, aTH: 'ผลรวมมากกว่า 10 ได้แก่ (5,6), (6,5), (6,6) รวม 3 กรณี = 3/36 = 1/12' },
+        { diff: 'expert', qTH: 'หากโยนเหรียญ 10 ครั้งแล้วออกก้อย 8 ครั้ง สรุปว่าเหรียญนี้มีโอกาสออกก้อย 80% ถูกต้องหรือไม่?', options: ['ถูกต้องตามผลจริง', 'ไม่ถูกต้อง เพราะจำนวนครั้งยังน้อยเกินไป', 'ถูกต้องตามทฤษฎี', 'สรุปไม่ได้'], correct: 1, aTH: 'ตามกฎ Law of Large Numbers ต้องทดลองจำนวนครั้งมากพอ' }
+    ];
+
+    let quizData = [];
+    let currentSimMode = 'step'; 
+    let accumulatedCounts = {};
+    let totalTosses = 0;
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playKahootPopSound() {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(520, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1040, audioCtx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+    }
+
+    function playSound(type, isWin = false) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        if (isWin) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+            osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
+            osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+            return;
+        }
+
+        if (type === 'coin') {
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(1400 - (i * 200), audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.12);
+                    gain.gain.setValueAtTime(0.3 / (i + 1), audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.12);
+                }, i * 150);
+            }
+        } else {
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(300 + Math.random() * 200, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.08);
+                }, i * 90);
+            }
+
+            setTimeout(() => {
+                for (let j = 0; j < 3; j++) {
+                    setTimeout(() => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.connect(gain); gain.connect(audioCtx.destination);
+                        osc.type = 'square';
+                        osc.frequency.setValueAtTime(180 - (j * 30), audioCtx.currentTime);
+                        gain.gain.setValueAtTime(0.6 / (j + 1), audioCtx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                        osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+                    }, j * 70);
+                }
+            }, 550);
+        }
+    }
+
+    let scene, camera, renderer, objects = [], isTossing = false;
+    let particleSystem;
+    const container = document.getElementById('canvas3d-container');
+
+    function init3D() {
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.shadowMap.enabled = true;
+        container.appendChild(renderer.domElement);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+        scene.add(ambientLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        dirLight.position.set(5, 12, 8);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+
+        const planeGeo = new THREE.PlaneGeometry(30, 30);
+        const planeMat = new THREE.MeshStandardMaterial({ color: 0x111e25, transparent: true, opacity: 0.4 });
+        const plane = new THREE.Mesh(planeGeo, planeMat);
+        plane.rotation.x = -Math.PI / 2;
+        plane.receiveShadow = true;
+        scene.add(plane);
+
+        const particleCount = 100;
+        const particles = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        for(let i=0; i<particleCount*3; i++) {
+            positions[i] = (Math.random() - 0.5) * 10;
+        }
+        particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const pMaterial = new THREE.PointsMaterial({
+            color: 0xe74c3c,
+            size: 0.2,
+            transparent: true,
+            opacity: 0.8
+        });
+        particleSystem = new THREE.Points(particles, pMaterial);
+        particleSystem.visible = false;
+        scene.add(particleSystem);
+
+        animate();
+    }
+
+    function createWhiteRedDiceTexture(number) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512; canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, 512, 512);
+
+        ctx.strokeStyle = '#dcdde1'; ctx.lineWidth = 20;
+        ctx.strokeRect(10, 10, 492, 492);
+
+        function drawRedDot(x, y) {
+            const r = 42;
+            const dotGrad = ctx.createRadialGradient(x - 5, y - 5, r * 0.2, x, y, r);
+            dotGrad.addColorStop(0, '#e74c3c');
+            dotGrad.addColorStop(0.8, '#c0392b');
+            dotGrad.addColorStop(1, '#821e14');
+            
+            ctx.fillStyle = dotGrad;
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        const center = 256, left = 135, right = 377, top = 135, bottom = 377;
+        if (number === 1) drawRedDot(center, center);
+        else if (number === 2) { drawRedDot(left, top); drawRedDot(right, bottom); }
+        else if (number === 3) { drawRedDot(left, top); drawRedDot(center, center); drawRedDot(right, bottom); }
+        else if (number === 4) { drawRedDot(left, top); drawRedDot(right, top); drawRedDot(left, bottom); drawRedDot(right, bottom); }
+        else if (number === 5) { drawRedDot(left, top); drawRedDot(right, top); drawRedDot(center, center); drawRedDot(left, bottom); drawRedDot(right, bottom); }
+        else if (number === 6) { drawRedDot(left, top); drawRedDot(right, top); drawRedDot(left, center); drawRedDot(right, center); drawRedDot(left, bottom); drawRedDot(right, bottom); }
+
+        return new THREE.CanvasTexture(canvas);
+    }
+
+    function createCoinFaceTexture(text, bgColor, textColor) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 256; canvas.height = 256;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = bgColor; ctx.fillRect(0, 0, 256, 256);
+        ctx.strokeStyle = textColor; ctx.lineWidth = 16; ctx.beginPath(); ctx.arc(128, 128, 115, 0, Math.PI * 2); ctx.stroke();
+        ctx.fillStyle = textColor; ctx.font = 'bold 90px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(text, 128, 134);
+        return new THREE.CanvasTexture(canvas);
+    }
+
+    const whiteRedDiceMaterials = [
+        new THREE.MeshStandardMaterial({ map: createWhiteRedDiceTexture(1), roughness: 0.3, metalness: 0.1 }),
+        new THREE.MeshStandardMaterial({ map: createWhiteRedDiceTexture(2), roughness: 0.3, metalness: 0.1 }),
+        new THREE.MeshStandardMaterial({ map: createWhiteRedDiceTexture(3), roughness: 0.3, metalness: 0.1 }),
+        new THREE.MeshStandardMaterial({ map: createWhiteRedDiceTexture(4), roughness: 0.3, metalness: 0.1 }),
+        new THREE.MeshStandardMaterial({ map: createWhiteRedDiceTexture(5), roughness: 0.3, metalness: 0.1 }),
+        new THREE.MeshStandardMaterial({ map: createWhiteRedDiceTexture(6), roughness: 0.3, metalness: 0.1 })
+    ];
+
+    function createObjects(type, count) {
+        objects.forEach(obj => scene.remove(obj.mesh));
+        objects = [];
+
+        const cols = Math.min(count, 5);
+        const rows = Math.ceil(count / cols);
+
+        camera.position.set(0, 6 + rows * 1.8, 7 + rows * 2);
+        camera.lookAt(0, 0, 0);
+
+        for (let i = 0; i < count; i++) {
+            let mesh;
+            const r = Math.floor(i / cols);
+            const c = i % cols;
+            const posX = (c - (cols - 1) / 2) * 2.3;
+            const posZ = (r - (rows - 1) / 2) * 2.3;
+
+            if (type === 'coin') {
+                const geo = new THREE.CylinderGeometry(1.0, 1.0, 0.18, 32);
+                const matEdge = new THREE.MeshStandardMaterial({ color: 0xbdc3c7, metalness: 0.8, roughness: 0.2 });
+                const matHead = new THREE.MeshStandardMaterial({ map: createCoinFaceTexture('หัว', '#f1c40f', '#d35400') });
+                const matTail = new THREE.MeshStandardMaterial({ map: createCoinFaceTexture('ก้อย', '#ecf0f1', '#2c3e50') });
+                mesh = new THREE.Mesh(geo, [matEdge, matHead, matTail]);
+                mesh.userData = { type: 'coin' };
+            } else {
+                const geo = new THREE.BoxGeometry(1.4, 1.4, 1.4);
+                mesh = new THREE.Mesh(geo, whiteRedDiceMaterials);
+                mesh.userData = { type: 'die' };
+            }
+
+            mesh.position.set(posX, (type === 'coin') ? 0.09 : 0.7, posZ);
+            mesh.castShadow = true;
+            scene.add(mesh);
+
+            objects.push({
+                mesh: mesh,
+                initPos: mesh.position.clone(),
+                velocity: new THREE.Vector3(),
+                angularVelocity: new THREE.Vector3(),
+                targetRotation: new THREE.Euler()
+            });
+        }
+        updatePredictionOptions();
+    }
+
+    function updatePredictionOptions() {
+        const type = document.getElementById('experimentSelect').value;
+        const count = parseInt(document.getElementById('itemSlider').value);
+        const select = document.getElementById('predictSelect');
+        select.innerHTML = '';
+
+        if (type === 'coin') {
+            for (let i = 0; i <= count; i++) {
+                select.innerHTML += `<option value="${i}">ออกก้อย ${i} เหรียญ</option>`;
+            }
+        } else {
+            const minSum = count;
+            const maxSum = count * 6;
+            for (let i = minSum; i <= maxSum; i++) {
+                select.innerHTML += `<option value="${i}">ผลรวมแต้มเท่ากับ ${i}</option>`;
+            }
+        }
+    }
+
+    function animateToss() {
+        if (isTossing) return;
+        isTossing = true;
+        document.getElementById('tossBtn').disabled = true;
+
+        playSound(objects[0].mesh.userData.type);
+        particleSystem.visible = true;
+
+        const type = document.getElementById('experimentSelect').value;
+        let stepResultKey = 0;
+
+        if (type === 'coin') {
+            let tailsCount = 0;
+            objects.forEach(obj => {
+                let isTails = Math.random() < 0.5;
+                if (isTails) tailsCount++;
+                obj.targetRotation.set(isTails ? Math.PI : 0, 0, 0);
+            });
+            stepResultKey = tailsCount;
+        } else {
+            let sumVal = 0;
+            objects.forEach(obj => {
+                let faceResult = Math.floor(Math.random() * 6) + 1;
+                sumVal += faceResult;
+                let rx = 0, rz = 0;
+                if (faceResult === 1) rz = -Math.PI / 2;
+                else if (faceResult === 2) rz = Math.PI / 2;
+                else if (faceResult === 3) rx = 0;
+                else if (faceResult === 4) rx = Math.PI;
+                else if (faceResult === 5) rx = -Math.PI / 2;
+                else if (faceResult === 6) rx = Math.PI / 2;
+                obj.targetRotation.set(rx, 0, rz);
+            });
+            stepResultKey = sumVal;
+        }
+
+        objects.forEach(obj => {
+            obj.mesh.position.y = 1.2;
+            obj.velocity.set((Math.random() - 0.5) * 1.5, 7 + Math.random() * 2, (Math.random() - 0.5) * 1.5);
+            obj.angularVelocity.set(Math.random() * 20 + 10, Math.random() * 10, Math.random() * 20 + 10);
+        });
+
+        setTimeout(() => {
+            isTossing = false;
+            particleSystem.visible = false;
+            document.getElementById('tossBtn').disabled = false;
+            objects.forEach(obj => {
+                obj.mesh.position.x = obj.initPos.x;
+                obj.mesh.position.z = obj.initPos.z;
+                obj.mesh.position.y = (obj.mesh.userData.type === 'coin') ? 0.09 : 0.7;
+                obj.mesh.rotation.copy(obj.targetRotation);
+            });
+            
+            totalTosses++;
+            if (!accumulatedCounts[stepResultKey]) accumulatedCounts[stepResultKey] = 0;
+            accumulatedCounts[stepResultKey]++;
+
+            const userPredict = parseInt(document.getElementById('predictSelect').value);
+            if (userPredict === stepResultKey) {
+                playSound(null, true);
+                alert(`🎉 ทายผลถูกต้อง! ผลลัพธ์คือ ${stepResultKey}`);
+            }
+
+            updateUIFromAccumulated();
+        }, 1800);
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        if (isTossing) {
+            objects.forEach(obj => {
+                obj.mesh.position.addScaledVector(obj.velocity, 0.02);
+                obj.velocity.y -= 0.35;
+                const minY = (obj.mesh.userData.type === 'coin') ? 0.09 : 0.7;
+                if (obj.mesh.position.y <= minY) {
+                    obj.mesh.position.y = minY;
+                    obj.velocity.y *= -0.45;
+                    obj.angularVelocity.multiplyScalar(0.7);
+                }
+                obj.mesh.rotation.x += obj.angularVelocity.x * 0.02;
+                obj.mesh.rotation.y += obj.angularVelocity.y * 0.02;
+                obj.mesh.rotation.z += obj.angularVelocity.z * 0.02;
+            });
+
+            if (particleSystem) {
+                particleSystem.rotation.y += 0.05;
+            }
+        }
+        renderer.render(scene, camera);
+    }
+
+    function setSimMode(mode) {
+        currentSimMode = mode;
+        document.getElementById('modeStepBtn').classList.toggle('active', mode === 'step');
+        document.getElementById('modeFastBtn').classList.toggle('active', mode === 'fast');
+        document.getElementById('trialControlGroup').style.display = (mode === 'fast') ? 'block' : 'none';
+        document.getElementById('tossBtn').style.display = (mode === 'step') ? 'block' : 'none';
+        resetStats();
+        if (mode === 'fast') runFastSimulation();
+    }
+
+    function resetStats() {
+        accumulatedCounts = {};
+        totalTosses = 0;
+        document.getElementById('totalTossesDisplay').innerText = '0';
+        updateUIFromAccumulated();
+    }
+
+    function runFastSimulation() {
+        const type = document.getElementById('experimentSelect').value;
+        const count = parseInt(document.getElementById('itemSlider').value);
+        const trials = parseInt(document.getElementById('trialSlider').value);
+        document.getElementById('trialValue').innerText = trials;
+
+        accumulatedCounts = {};
+        totalTosses = trials;
+
+        if (type === 'coin') {
+            for (let i = 0; i < trials; i++) {
+                let tails = 0;
+                for (let c = 0; c < count; c++) if (Math.random() < 0.5) tails++;
+                accumulatedCounts[tails] = (accumulatedCounts[tails] || 0) + 1;
+            }
+        } else {
+            for (let i = 0; i < trials; i++) {
+                let sum = 0;
+                for (let d = 0; d < count; d++) sum += Math.floor(Math.random() * 6) + 1;
+                accumulatedCounts[sum] = (accumulatedCounts[sum] || 0) + 1;
+            }
+        }
+        updateUIFromAccumulated();
+    }
+
+    function updateUIFromAccumulated() {
+        const type = document.getElementById('experimentSelect').value;
+        const count = parseInt(document.getElementById('itemSlider').value);
+        const tbody = document.getElementById('dataTableBody');
+        tbody.innerHTML = '';
+
+        document.getElementById('totalTossesDisplay').innerText = totalTosses;
+
+        let labels = [], dataArr = [];
+
+        if (type === 'coin') {
+            const nS = Math.pow(2, count);
+            document.getElementById('sampleSpaceSet').innerText = (count === 1) ? 'H, T' : `รูปแบบทั้งหมด ${nS} แบบ`;
+            document.getElementById('sampleSpaceN').innerText = nS;
+
+            for (let i = 0; i <= count; i++) {
+                labels.push(`ก้อย ${i} เหรียญ`);
+                let freq = accumulatedCounts[i] || 0;
+                dataArr.push(freq);
+                let expP = totalTosses > 0 ? ((freq / totalTosses) * 100).toFixed(2) : '0.00';
+                let theoP = ((combine(count, i) / nS) * 100).toFixed(2);
+                tbody.innerHTML += `<tr><td>${labels[i]}</td><td>${freq}</td><td>${expP}%</td><td>${theoP}%</td></tr>`;
+            }
+        } else {
+            if (count === 1) {
+                document.getElementById('sampleSpaceSet').innerText = '1, 2, 3, 4, 5, 6';
+                document.getElementById('sampleSpaceN').innerText = 6;
+                for (let i = 1; i <= 6; i++) {
+                    labels.push(`แต้ม ${i}`);
+                    let freq = accumulatedCounts[i] || 0;
+                    dataArr.push(freq);
+                    let expP = totalTosses > 0 ? ((freq / totalTosses) * 100).toFixed(2) : '0.00';
+                    tbody.innerHTML += `<tr><td>${labels[i - 1]}</td><td>${freq}</td><td>${expP}%</td><td>16.67%</td></tr>`;
+                }
+            } else {
+                const minSum = count;
+                const maxSum = count * 6;
+                const nS = Math.pow(6, count);
+                document.getElementById('sampleSpaceSet').innerText = `ผลรวม ${minSum} ถึง ${maxSum} (${nS} แบบ)`;
+                document.getElementById('sampleSpaceN').innerText = nS;
+
+                for (let i = minSum; i <= maxSum; i++) {
+                    labels.push(`ผลรวม ${i}`);
+                    let freq = accumulatedCounts[i] || 0;
+                    dataArr.push(freq);
+                    let expP = totalTosses > 0 ? ((freq / totalTosses) * 100).toFixed(2) : '0.00';
+                    tbody.innerHTML += `<tr><td>${labels[labels.length - 1]}</td><td>${freq}</td><td>${expP}%</td><td>-</td></tr>`;
+                }
+            }
+        }
+
+        probChart.data.labels = labels;
+        probChart.data.datasets[0].data = dataArr;
+        probChart.update();
+    }
+
+    function exportCSV() {
+        const table = document.querySelector("table");
+        let csv = [];
+        for (let row of table.rows) {
+            let cols = Array.from(row.cells).map(td => `"${td.innerText.replace(/"/g, '""')}"`);
+            csv.push(cols.join(","));
+        }
+        let csvFile = new Blob(["\uFEFF" + csv.join("\n")], { type: "text/csv;charset=utf-8;" });
+        let downloadLink = document.createElement("a");
+        downloadLink.download = `probability_experiment_data.csv`;
+        downloadLink.href = window.URL.createObjectURL(csvFile);
+        downloadLink.style.display = "none";
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+    }
+
+    function loadQuizData() {
+        const saved = localStorage.getItem('probability_quiz_data');
+        if (saved) {
+            try { quizData = JSON.parse(saved); } 
+            catch(e) { quizData = [...defaultQuizData]; }
+        } else {
+            quizData = [...defaultQuizData];
+        }
+        renderQuiz();
+    }
+
+    function saveQuizData() {
+        localStorage.setItem('probability_quiz_data', JSON.stringify(quizData));
+    }
+
+    function resetDefaultQuestions() {
+        if (confirm("ต้องการคืนค่าข้อสอบเริ่มต้นทั้งหมดใช่หรือไม่?")) {
+            quizData = [...defaultQuizData];
+            saveQuizData();
+            renderQuiz();
+            document.getElementById('scoreBoard').style.display = 'none';
+        }
+    }
+
+    function renderQuiz() {
+        const container = document.getElementById('quizContainer');
+        container.innerHTML = "";
+        quizData.forEach((q, idx) => {
+            let optsHTML = "";
+            let options = q.options || ['ตัวเลือก A', 'ตัวเลือก B', 'ตัวเลือก C', 'ตัวเลือก D'];
+            options.forEach((opt, optIdx) => {
+                optsHTML += `
+                <label class="option-item">
+                    <input type="radio" name="q_${idx}" value="${optIdx}">
+                    <span>${opt}</span>
+                </label>`;
+            });
+
+            container.innerHTML += `
+            <div class="question-card" id="qcard_${idx}">
+                <p style="margin-top:0;">
+                    <span class="badge badge-${q.diff}">${q.diff.toUpperCase()}</span> 
+                    <strong>ข้อที่ ${idx + 1}:</strong> ${q.qTH}
+                </p>
+                <div class="options-group">${optsHTML}</div>
+                <div class="feedback" id="feedback_${idx}"></div>
+            </div>`;
+        });
+    }
+
+    function checkQuizAnswers() {
+        let quizScore = 0;
+        let total = quizData.length;
+
+        quizData.forEach((q, idx) => {
+            const selected = document.querySelector(`input[name="q_${idx}"]:checked`);
+            const feedbackEl = document.getElementById(`feedback_${idx}`);
+            feedbackEl.style.display = 'block';
+
+            if (selected && parseInt(selected.value) === (q.correct || 0)) {
+                quizScore++;
+                feedbackEl.className = 'feedback correct';
+                feedbackEl.innerHTML = `ถูกต้อง : ${q.aTH}`;
+            } else {
+                feedbackEl.className = 'feedback incorrect';
+                feedbackEl.innerHTML = `ยังไม่ถูกต้อง : ${q.aTH}`;
+            }
+        });
+
+        const scoreBoard = document.getElementById('scoreBoard');
+        scoreBoard.style.display = 'block';
+        scoreBoard.innerHTML = `ตรวจข้อสอบสำเร็จ! ตอบถูก ${quizScore} / ${total} ข้อ`;
+    }
+
+    function addNewQuiz() {
+        const q = document.getElementById('newQuestion').value.trim();
+        const optsStr = document.getElementById('newOptions').value.trim();
+        const correctIdx = parseInt(document.getElementById('correctIdx').value);
+        const a = document.getElementById('newAnswer').value.trim();
+        const d = document.getElementById('newDifficulty').value;
+
+        if (!q || !a || !optsStr) return alert('กรอกโจทย์ ตัวเลือก และเฉลยให้ครบถ้วน');
+
+        const optsArr = optsStr.split(',').map(s => s.trim()).filter(s => s !== '');
+        if (optsArr.length < 2) return alert('กรุณาใส่ตัวเลือกอย่างน้อย 2 ตัวเลือก');
+
+        quizData.push({
+            diff: d,
+            qTH: q,
+            options: optsArr,
+            correct: (correctIdx >= 0 && correctIdx < optsArr.length) ? correctIdx : 0,
+            aTH: a
+        });
+
+        saveQuizData();
+        renderQuiz();
+
+        document.getElementById('newQuestion').value = '';
+        document.getElementById('newOptions').value = '';
+        document.getElementById('newAnswer').value = '';
+        alert('บันทึกข้อสอบใหม่เรียบร้อยแล้ว');
+    }
+
+    let probChart;
+    function initChart() {
+        const ctx = document.getElementById('probabilityChart').getContext('2d');
+        probChart = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: [], datasets: [{ label: 'ความถี่จากการทดลอง', data: [], backgroundColor: '#3498db' }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+        });
+    }
+
+    function setupExperiment() {
+        const type = document.getElementById('experimentSelect').value;
+        const count = parseInt(document.getElementById('itemSlider').value);
+        document.getElementById('itemValue').innerText = count;
+
+        createObjects(type, count);
+        resetStats();
+        if (currentSimMode === 'fast') runFastSimulation();
+    }
+
+    function factorial(n) { if (n <= 1) return 1; let r = 1; for (let i = 2; i <= n; i++) r *= i; return r; }
+    function combine(n, r) { return factorial(n) / (factorial(r) * factorial(n - r)); }
+
+    function setLanguage(lang) {
+        document.getElementById('btnTH').classList.toggle('active', lang === 'th');
+        document.getElementById('btnEN').classList.toggle('active', lang === 'en');
+    }
+
+    // ==========================================
+    // 📲 REALTIME GAME ENGINE & KAHOOT POP ENGINE
+    // ==========================================
+    let mobileData = {
+        name: '',
+        points: 10,
+        roundsPlayed: 0,
+        isDefeated: false
+    };
+
+    let previousKnownPlayers = new Set();
+    let timerInterval = null;
+    let timeLeft = 30;
+
+    function initQRCode() {
+        const qrContainer = document.getElementById('qrcode');
+        qrContainer.innerHTML = '';
+        const playUrl = window.location.href.split('#')[0] + '?mode=play';
+        new QRCode(qrContainer, {
+            text: playUrl,
+            width: 160,
+            height: 160,
+            colorDark : "#2c3e50",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+    }
+
+    function updateMobileGuessOptions() {
+        const diceCount = parseInt(document.getElementById('mobileDiceCount').value);
+        const guessSelect = document.getElementById('mobileGuess');
+        guessSelect.innerHTML = '';
+
+        const minVal = diceCount;
+        const maxVal = diceCount * 6;
+
+        for (let i = minVal; i <= maxVal; i++) {
+            guessSelect.innerHTML += `<option value="${i}">ผลรวมแต้มเท่ากับ ${i}</option>`;
+        }
+    }
+
+    function startMobilePlayer() {
+        const nameInput = document.getElementById('mobilePlayerName').value.trim();
+        if (!nameInput) return alert('กรุณากรอกชื่อผู้เล่นก่อนเริ่มครับ');
+
+        mobileData.name = nameInput;
+        mobileData.points = 10;
+        mobileData.roundsPlayed = 0;
+        mobileData.isDefeated = false;
+
+        document.getElementById('mobileRegCard').style.display = 'none';
+        document.getElementById('mobilePlayCard').style.display = 'block';
+        document.getElementById('mobileWelcome').innerText = `👤 ผู้เล่น: ${mobileData.name}`;
+
+        updateMobileGuessOptions();
+        broadcastPlayerUpdate();
+        startRoundTimer();
+    }
+
+    function startRoundTimer() {
+        clearInterval(timerInterval);
+        timeLeft = 30;
+        document.getElementById('timerSec').innerText = timeLeft;
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timerSec').innerText = timeLeft;
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                alert('⏳ หมดเวลา 30 วินาที! ระบบจะทำการสุ่มเดิมพันในรอบนี้ให้อัตโนมัติ');
+                playMobileRound(true);
+            }
+        }, 1000);
+    }
+
+    function playMobileRound(isAuto = false) {
+        if (mobileData.isDefeated || mobileData.points <= 0) {
+            return alert('คุณแพ้การแข่งขันแล้ว ไม่สามารถเล่นต่อได้!');
+        }
+        if (mobileData.roundsPlayed >= 10) {
+            return alert('คุณใช้สิทธิ์เล่นครบ 10 รอบแล้ว!');
+        }
+
+        let bet = parseInt(document.getElementById('mobileBetAmount').value);
+        if (isNaN(bet) || bet < 1) bet = 1;
+        if (bet > mobileData.points) bet = mobileData.points;
+
+        const diceCount = parseInt(document.getElementById('mobileDiceCount').value);
+        let guess = parseInt(document.getElementById('mobileGuess').value);
+
+        if (isAuto) {
+            const minVal = diceCount;
+            const maxVal = diceCount * 6;
+            guess = Math.floor(Math.random() * (maxVal - minVal + 1)) + minVal;
+        }
+
+        let diceSum = 0;
+        for (let i = 0; i < diceCount; i++) {
+            diceSum += Math.floor(Math.random() * 6) + 1;
+        }
+
+        mobileData.roundsPlayed++;
+        const resultLog = document.getElementById('mobileResultLog');
+
+        if (guess === diceSum) {
+            const winAmount = bet * 3;
+            mobileData.points += winAmount;
+            resultLog.style.color = '#2ecc71';
+            resultLog.innerHTML = `🎉 ออกผลรวม ${diceSum}! ทายถูก! ได้รับ +${winAmount} แต้ม!`;
+        } else {
+            mobileData.points -= bet;
+            resultLog.style.color = '#e74c3c';
+            resultLog.innerHTML = `❌ ออกผลรวม ${diceSum}! ทายผิด เสีย ${bet} แต้ม`;
+        }
+
+        if (mobileData.points <= 0) {
+            mobileData.points = 0;
+            mobileData.isDefeated = true;
+            clearInterval(timerInterval);
+            document.getElementById('btnRollDiceMobile').disabled = true;
+            document.getElementById('timerBox').style.display = 'none';
+            resultLog.innerHTML += `<br><span style="color:#e74c3c; font-size:1.3em;">💀 แต้มหมดเกลี้ยง! คุณแพ้การแข่งขันทันที (Defeated)</span>`;
+        } else if (mobileData.roundsPlayed >= 10) {
+            clearInterval(timerInterval);
+            document.getElementById('btnRollDiceMobile').disabled = true;
+            document.getElementById('timerBox').style.display = 'none';
+            resultLog.innerHTML += `<br><span style="color:#f1c40f;">🏁 จบการแข่งขันของคุณแล้ว! คะแนนรวมสุดท้าย: ${mobileData.points} แต้ม</span>`;
+        } else {
+            startRoundTimer();
+        }
+
+        document.getElementById('mobilePoints').innerText = mobileData.points;
+        document.getElementById('mobileRounds').innerText = mobileData.roundsPlayed;
+
+        broadcastPlayerUpdate();
+    }
+
+    // กระจายข้อมูลผู้เล่นแบบ Realtime ข้ามแท็บ/เบราว์เซอร์
+    function broadcastPlayerUpdate() {
+        let playersList = JSON.parse(localStorage.getItem('kahoot_live_players') || '[]');
+        const idx = playersList.findIndex(p => p.name === mobileData.name);
+        if (idx >= 0) {
+            playersList[idx] = { ...mobileData };
+        } else {
+            playersList.push({ ...mobileData });
+        }
+        localStorage.setItem('kahoot_live_players', JSON.stringify(playersList));
+
+        if (broadcastChannel) {
+            broadcastChannel.postMessage({ type: 'UPDATE_PLAYERS', players: playersList });
+        }
+    }
+
+    // Render ตารางคะแนนสด เรียงอันดับแต้มมากไปน้อย พร้อม Kahoot Pop Animation
+    function renderRealtimeScoreboard(playersList) {
+        const tbody = document.getElementById('qrScoreboardBody');
+        if (!playersList || playersList.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="opacity:0.7; padding:20px;">ยังไม่มีผู้เล่นสแกนเข้าร่วมในขณะนี้</td></tr>';
+            previousKnownPlayers.clear();
+            return;
+        }
+
+        // เรียงอันดับจากแต้มมากไปน้อยที่สุด
+        playersList.sort((a, b) => b.points - a.points);
+
+        tbody.innerHTML = '';
+        playersList.forEach((qp, idx) => {
+            const isBrandNew = !previousKnownPlayers.has(qp.name);
+            
+            if (isBrandNew) {
+                playKahootPopSound();
+                previousKnownPlayers.add(qp.name);
+            }
+
+            const rankBadge = idx === 0 ? '👑 ' : (idx === 1 ? '🥈 ' : (idx === 2 ? '🥉 ' : ''));
+            const rankClass = idx === 0 ? 'rank-1' : (idx === 1 ? 'rank-2' : (idx === 2 ? 'rank-3' : ''));
+            const rowClass = isBrandNew ? 'player-row kahoot-enter' : `player-row ${rankClass}`;
+
+            const statusText = qp.isDefeated 
+                ? '<span class="status-defeated">💀 แพ้แล้ว (แต้ม 0)</span>' 
+                : '<span class="status-active">🟢 อยู่ในเกม</span>';
+
+            tbody.innerHTML += `
+                <tr class="${rowClass}">
+                    <td>${rankBadge}อันดับ ${idx + 1}</td>
+                    <td style="font-weight:bold; color:#f1c40f; font-size:1.3em;">👤 ${qp.name}</td>
+                    <td style="font-size:1.4em; color:#2ecc71;">${qp.points} แต้ม</td>
+                    <td>${qp.roundsPlayed} / 10 รอบ</td>
+                    <td>${statusText}</td>
+                </tr>
+            `;
+        });
+    }
+
+    function listenRealtimeUpdates() {
+        // 1. อ่านข้อมูลครั้งแรก
+        const initialData = JSON.parse(localStorage.getItem('kahoot_live_players') || '[]');
+        renderRealtimeScoreboard(initialData);
+
+        // 2. ฟังการเปลี่ยนแปลงผ่าน BroadcastChannel (เร็วที่สุด Realtime)
+        if (broadcastChannel) {
+            broadcastChannel.onmessage = (event) => {
+                if (event.data && event.data.type === 'UPDATE_PLAYERS') {
+                    renderRealtimeScoreboard(event.data.players);
+                }
+            };
+        }
+
+        // 3. ฟังการเปลี่ยนแปลงผ่าน Window Storage Event (สำรองสำหรับคนละหน้าต่าง)
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'kahoot_live_players') {
+                const updated = JSON.parse(e.newValue || '[]');
+                renderRealtimeScoreboard(updated);
+            }
+        });
+
+        // 4. Polling ถี่ๆ ทุก 500ms ป้องกันตกหล่น
+        setInterval(() => {
+            const current = JSON.parse(localStorage.getItem('kahoot_live_players') || '[]');
+            renderRealtimeScoreboard(current);
+        }, 500);
+    }
+
+    function clearAllPlayers() {
+        if (confirm("ต้องการลบรายชื่อผู้เล่นทั้งหมดจากตารางใช่หรือไม่?")) {
+            localStorage.removeItem('kahoot_live_players');
+            previousKnownPlayers.clear();
+            if (broadcastChannel) broadcastChannel.postMessage({ type: 'UPDATE_PLAYERS', players: [] });
+            renderRealtimeScoreboard([]);
+        }
+    }
+
+    window.onload = () => {
+        init3D();
+        initChart();
+        loadQuizData();
+        setupExperiment();
+        initQRCode();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('mode') === 'play') {
+            document.getElementById('mainContainer').style.display = 'none';
+            document.getElementById('mobileGamePanel').style.display = 'block';
+        } else {
+            listenRealtimeUpdates();
+        }
+    };
+
+    window.onresize = () => {
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+    };
+</script>
+
+</body>
+</html>
